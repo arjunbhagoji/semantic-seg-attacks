@@ -69,7 +69,7 @@ def random_crop_and_pad_image_and_labels(image, label, crop_h, crop_w, ignore_la
     label_crop.set_shape((crop_h,crop_w, 1))
     return img_crop, label_crop  
 
-def read_labeled_image_list(data_dir, data_list):
+def read_labeled_image_list(data_dir, data_list, ADV_FLAG=None, MASK_FLAG=None, eps=None, attack=None, targeted=None):
     """Reads txt file containing paths to images and ground truth masks.
     
     Args:
@@ -85,6 +85,14 @@ def read_labeled_image_list(data_dir, data_list):
     for line in f:
         try:
             image, mask = line.strip("\n").split(' ')
+            if ADV_FLAG is not None:
+              image = image.strip('.jpg')
+              image = image + '_' + str(eps) + '_' + attack
+              if MASK_FLAG is not None:
+                image += '_masked'
+              if targeted:
+                image += '_T'
+              image += '.jpg'
         except ValueError: # Adhoc for test.
             image = mask = line.strip("\n")
         images.append(data_dir + image)
@@ -142,7 +150,8 @@ class ImageReader(object):
     '''
 
     def __init__(self, data_dir, data_list, input_size, 
-                 random_scale, random_mirror, ignore_label, img_mean, coord):
+                 random_scale, random_mirror, ignore_label, img_mean, 
+                 coord, ADV_FLAG=None, MASK_FLAG=None, eps=None, attack=None, targeted=None):
         '''Initialise an ImageReader.
         
         Args:
@@ -159,12 +168,18 @@ class ImageReader(object):
         self.data_list = data_list
         self.input_size = input_size
         self.coord = coord
+        self.ADV_FLAG = ADV_FLAG
+        self.MASK_FLAG = MASK_FLAG
+        self.eps = eps
+        self.attack = attack
+        self.targeted = targeted
         
-        self.image_list, self.label_list = read_labeled_image_list(self.data_dir, self.data_list)
+        self.image_list, self.label_list = read_labeled_image_list(self.data_dir, self.data_list, self.ADV_FLAG, self.MASK_FLAG, 
+                                                                    self.eps, self.attack, self.targeted)
         self.images = tf.convert_to_tensor(self.image_list, dtype=tf.string)
         self.labels = tf.convert_to_tensor(self.label_list, dtype=tf.string)
         self.queue = tf.train.slice_input_producer([self.images, self.labels],
-                                                   shuffle=input_size is not None) # not shuffling if it is val
+                                                   shuffle=False) # not shuffling if it is val
         self.image, self.label = read_images_from_disk(self.queue, self.input_size, random_scale, random_mirror, ignore_label, img_mean) 
 
     def dequeue(self, num_elements):

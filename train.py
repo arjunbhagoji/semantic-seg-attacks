@@ -21,7 +21,7 @@ from deeplab_resnet import DeepLabResNetModel, ImageReader, decode_labels, inv_p
 IMG_MEAN = np.array((104.00698793,116.66876762,122.67891434), dtype=np.float32)
 
 BATCH_SIZE = 10
-DATA_DIRECTORY = '/home/VOCdevkit'
+DATA_DIRECTORY = '/home/abhagoji/VOCdevkit/VOC2012'
 DATA_LIST_PATH = './dataset/train.txt'
 IGNORE_LABEL = 255
 INPUT_SIZE = '321,321'
@@ -32,6 +32,7 @@ NUM_STEPS = 20001
 POWER = 0.9
 RANDOM_SEED = 1234
 RESTORE_FROM = './deeplab_resnet.ckpt'
+# RESTORE_FROM = None
 SAVE_NUM_IMAGES = 2
 SAVE_PRED_EVERY = 1000
 SNAPSHOT_DIR = './snapshots/'
@@ -165,6 +166,7 @@ def main():
     
     # Predictions: ignoring all predictions with labels greater or equal than n_classes
     raw_prediction = tf.reshape(raw_output, [-1, args.num_classes])
+    print(raw_prediction.get_shape())
     label_proc = prepare_label(label_batch, tf.stack(raw_output.get_shape()[1:3]), num_classes=args.num_classes, one_hot=False) # [batch_size, h, w]
     raw_gt = tf.reshape(label_proc, [-1,])
     indices = tf.squeeze(tf.where(tf.less_equal(raw_gt, args.num_classes - 1)), 1)

@@ -22,6 +22,7 @@ IMG_MEAN = np.array((104.00698793,116.66876762,122.67891434), dtype=np.float32)
     
 NUM_CLASSES = 21
 SAVE_DIR = './output/'
+RESTORE_FROM = './deeplab_resnet.ckpt'
 
 def get_arguments():
     """Parse all the arguments provided from the CLI.
@@ -32,7 +33,7 @@ def get_arguments():
     parser = argparse.ArgumentParser(description="DeepLabLFOV Network Inference.")
     parser.add_argument("img_path", type=str,
                         help="Path to the RGB image file.")
-    parser.add_argument("model_weights", type=str,
+    parser.add_argument("--model_weights", type=str, default=RESTORE_FROM,
                         help="Path to the file with model weights.")
     parser.add_argument("--num-classes", type=int, default=NUM_CLASSES,
                         help="Number of classes to predict (including background).")
@@ -95,9 +96,10 @@ def main():
     im = Image.fromarray(msk[0])
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
-    im.save(args.save_dir + 'mask.png')
+    name = os.path.basename(args.img_path).strip('.jpg') + '_MASK.png'
+    im.save(args.save_dir + name)
     
-    print('The output file has been saved to {}'.format(args.save_dir + 'mask.png'))
+    print('The output file has been saved to {}'.format(args.save_dir + name))
 
     
 if __name__ == '__main__':

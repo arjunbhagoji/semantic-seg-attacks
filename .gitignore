@@ -1,0 +1,5 @@
+*.out
+snapshots/
+*.png
+*.jpg
+*.ckpt
